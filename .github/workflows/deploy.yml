@@ -18,13 +18,28 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'  # Ensure Node.js version matches your local setup
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci  # Clean install based on package-lock.json
+
       - name: Build React app
         run: |
           cd frontend
-          npm install
           npm run build
+
+      - name: Print Node.js version
+        run: node --version
+
+      - name: Print npm version
+        run: npm --version
 
       - name: Deploy to server
         run: |
-          # Copy the build to the server
-          scp -r frontend/build/* ubuntu@test.skillnaav.com:/home/ubuntu/skillnaav-fullstack/frontend/build
+          cd frontend
+          scp -r build/* ubuntu@test.skillnaav.com:/home/ubuntu/skillnaav-fullstack/frontend/build
