@@ -39,4 +39,4 @@ Make sure you have the following installed on your local machine:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repository/skillnaav.git
+   https://github.com/saipraneethEdutechex/skillnaav-fullstack
