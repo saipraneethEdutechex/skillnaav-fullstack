@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const UserProfileForm = () => {
+  const location = useLocation();
+  const userData = location.state?.userData || {}; // Access user data
+
   const [formData, setFormData] = useState({
-    name: "",
+    universityName: "",
     dob: "",
     educationLevel: "",
     fieldOfStudy: "",
+    ...userData, // Initialize formData with userData if available
   });
+
   const [isFormValid, setIsFormValid] = useState(false);
   const navigate = useNavigate();
 
   // Validate form on every change
   useEffect(() => {
-    const { name, dob, educationLevel, fieldOfStudy } = formData;
-    if (name && dob && educationLevel && fieldOfStudy) {
+    const { universityName, dob, educationLevel, fieldOfStudy } = formData;
+    if (universityName && dob && educationLevel && fieldOfStudy) {
       setIsFormValid(true);
     } else {
       setIsFormValid(false);
@@ -31,14 +36,10 @@ const UserProfileForm = () => {
 
   const handleSubmit = () => {
     if (isFormValid) {
-      navigate("/user-profile-picture");
+      console.log("Form Data:", formData);
+      navigate("/user-profile-picture", { state: { formData } });
     }
   };
-
-  const handleSkip = () => {
-    navigate("/user-profile-picture");
-  };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 font-poppins">
       <div className="w-full max-w-xl p-8 space-y-6 bg-white shadow-md rounded-lg">
@@ -50,21 +51,21 @@ const UserProfileForm = () => {
           </div>
           <div>
             <label
-              htmlFor="name"
+              htmlFor="universityName"
               className="block text-sm font-medium text-gray-700"
             >
-              Name
+              University Name
             </label>
             <input
-              id="name"
+              id="universityName" // Updated id
               type="text"
-              name="name"
-              value={formData.name}
+              name="universityName" // Updated name
+              value={formData.universityName} // Updated value
               onChange={handleChange}
               className={`mt-1 block w-full px-3 py-2 border ${
-                formData.name ? "border-gray-300" : "border-gray-200"
+                formData.universityName ? "border-gray-300" : "border-gray-200"
               } rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500`}
-              placeholder="Enter your Name"
+              placeholder="Enter your University Name" // Updated placeholder
             />
           </div>
           <div>
@@ -110,7 +111,7 @@ const UserProfileForm = () => {
                 />
                 <label
                   htmlFor="highschool"
-                  className="ml-3 mt-5 block text-sm text-gray-700"
+                  className="ml-3 block text-sm text-gray-700"
                 >
                   Highschool
                 </label>
@@ -127,7 +128,7 @@ const UserProfileForm = () => {
                 />
                 <label
                   htmlFor="undergraduate"
-                  className="ml-3 mt-5 block text-sm text-gray-700"
+                  className="ml-3 block text-sm text-gray-700"
                 >
                   Undergraduate
                 </label>
@@ -144,7 +145,7 @@ const UserProfileForm = () => {
                 />
                 <label
                   htmlFor="graduate"
-                  className="ml-3 mt-5  block text-sm text-gray-700"
+                  className="ml-3 block text-sm text-gray-700"
                 >
                   Graduate
                 </label>
@@ -154,7 +155,7 @@ const UserProfileForm = () => {
           <div>
             <label
               htmlFor="fieldOfStudy"
-              className="block text-sm mt-6 font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700"
             >
               Field of Interest
             </label>
@@ -189,13 +190,6 @@ const UserProfileForm = () => {
             } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
           >
             Continue
-          </button>
-          <button
-            type="button"
-            onClick={handleSkip}
-            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
-          >
-            Skip
           </button>
         </div>
       </div>

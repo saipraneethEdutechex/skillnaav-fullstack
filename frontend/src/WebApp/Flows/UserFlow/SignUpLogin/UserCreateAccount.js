@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+// UserCreateAccount.js
+import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import createAccountImage from "../../../../assets-webapp/login-image.png"; // Update the path as needed
-import googleIcon from "../../../../assets-webapp/Google-icon.png";
-import facebookIcon from "../../../../assets-webapp/Facebook-icon.png";
-import appleIcon from "../../../../assets-webapp/Apple-icon.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid"; // Ensure these are the correct imports
 import { Link } from "react-router-dom";
+import { account } from "../../../../appwriteConfig";
+import googleIcon from "../../../../assets-webapp/Google-icon.png";
+import githubIcon from "../../../../assets-webapp/github-mark-white.svg"; // Make sure to have this image
+import facebookIcon from "../../../../assets-webapp/Facebook-icon.png"; // Make sure to have this image
+import axios from "axios"; // For backend API call (optional)
 
 // Validation schema for Formik
 const validationSchema = Yup.object({
@@ -27,26 +29,86 @@ const UserCreateAccount = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
-  // Function to handle form submission
-  const handleSubmit = async (values, { setSubmitting }) => {
+  // Function to handle manual form submission
+  const handleSubmit = (values, { setSubmitting }) => {
     try {
-      const response = await axios.post("/api/users/register", values);
-      navigate("/user-profile-form");
-      localStorage.setItem("userInfo", JSON.stringify(response.data));
+      console.log("User Data Submitted:", values); // Log user data to console
+      // Simulate successful registration
+      navigate("/user-profile-form", { state: { userData: values } });
+
+      // Store form data in localStorage (optional)
+      localStorage.setItem("userInfo", JSON.stringify(values));
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        setErrorMessage(error.response.data.message);
-      } else {
-        setErrorMessage("Error registering user. Please try again.");
-      }
+      setErrorMessage("Error registering user. Please try again.");
     }
     setSubmitting(false);
   };
+
+  // Function to handle Google Sign-Up
+  const signUpWithGoogle = async () => {
+    try {
+      await account.createOAuth2Session(
+        "google",
+        "http://localhost:3000/user-main-page", // Success redirect
+        "http://localhost:3000" // Failure redirect
+      );
+    } catch (error) {
+      setErrorMessage("Google Sign-Up failed. Please try again.");
+    }
+  };
+
+  // Function to handle GitHub Sign-Up
+  const signUpWithGitHub = async () => {
+    try {
+      await account.createOAuth2Session(
+        "github",
+        "http://localhost:3000/user-main-page", // Success redirect
+        "http://localhost:3000" // Failure redirect
+      );
+    } catch (error) {
+      setErrorMessage("GitHub Sign-Up failed. Please try again.");
+    }
+  };
+
+  // Function to handle Facebook Sign-Up
+  const signUpWithFacebook = async () => {
+    try {
+      await account.createOAuth2Session(
+        "facebook",
+        "http://localhost:3000/user-main-page", // Success redirect
+        "http://localhost:3000" // Failure redirect
+      );
+    } catch (error) {
+      setErrorMessage("Facebook Sign-Up failed. Please try again.");
+    }
+  };
+
+  // Function to fetch and store user details after successful sign-up
+  const fetchUserDetails = async () => {
+    try {
+      const user = await account.get(); // Fetch user details from Appwrite
+      setUserInfo(user); // Store in state
+      console.log("User Info:", user); // Log for debugging
+
+      // Store user details locally
+      localStorage.setItem("userInfo", JSON.stringify(user));
+
+      // Optionally send user data to your backend for permanent storage
+      // await axios.post("/api/storeUser", user);
+
+      // Navigate to user dashboard or any route after sign-up
+      navigate("/user-main-page");
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+
+  // Fetch user details after OAuth2 sign-up
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen font-poppins">
@@ -155,7 +217,7 @@ const UserCreateAccount = () => {
                   </button>
 
                   <ErrorMessage
-                    name="password"
+                    name="confirmPassword"
                     component="div"
                     className="text-red-500 text-sm mt-1"
                   />
@@ -164,46 +226,48 @@ const UserCreateAccount = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 mb-4"
+                  className={`w-full bg-purple-${
+                    isSubmitting ? "300" : "500"
+                  } text-white p-3 rounded-lg hover:bg-purple-${
+                    isSubmitting ? "300" : "600"
+                  } mb-4`}
                 >
-                  <a href="/user-profile-form">Register</a>
+                  Register
                 </button>
               </Form>
             )}
           </Formik>
 
-          <div className="flex items-center my-4">
-            <hr className="w-full border-t border-gray-300" />
-            <span className="px-3 text-gray-500">OR</span>
-            <hr className="w-full border-t border-gray-300" />
+          {/* Updated Sign-Up Buttons */}
+          <div className="mt-6 space-y-4">
+            <button
+              onClick={signUpWithGoogle}
+              className="flex items-center justify-center w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md"
+            >
+              <img
+                src={googleIcon}
+                alt="Google Icon"
+                className="w-6 h-6 mr-2"
+              />
+              Sign up with Google
+            </button>
+
+            <button
+              onClick={signUpWithGitHub}
+              className="flex items-center justify-center w-full bg-gray-800 text-white p-3 rounded-lg hover:bg-gray-900 transition-colors duration-200 shadow-md"
+            >
+              <img
+                src={githubIcon}
+                alt="GitHub Icon"
+                className="w-6 h-6 mr-2"
+              />
+              Sign up with GitHub
+            </button>
+
+          
           </div>
 
-          {/* <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
-            <span className="mr-2">
-              <img src={googleIcon} alt="Google" className="h-5 w-5" />
-            </span>
-            <span className="font-poppins font-semibold text-base leading-6">
-              Sign Up with Google
-            </span>
-          </button>
-          <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
-            <span className="mr-2">
-              <img src={facebookIcon} alt="Facebook" className="h-5 w-5" />
-            </span>
-            <span className="font-poppins font-semibold text-base leading-6">
-              Sign Up with Facebook
-            </span>
-          </button>
-          <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
-            <span className="mr-2">
-              <img src={appleIcon} alt="Apple" className="h-5 w-5" />
-            </span>
-            <span className="font-poppins font-semibold text-base leading-6">
-              Sign Up with Apple
-            </span>
-          </button> */}
-
-          <p className="text-center text-gray-500 font-poppins font-medium text-base leading-6">
+          <p className="text-center text-gray-500 mt-5 font-poppins font-medium text-base leading-6">
             Already have an account?{" "}
             <Link to="/user/login" className="text-blue-500 hover:underline">
               Login

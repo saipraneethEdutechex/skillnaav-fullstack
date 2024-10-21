@@ -1,3 +1,4 @@
+// userModel.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -17,15 +18,37 @@ const userwebappSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isAdmin: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    pic: {
+    universityName: {
       type: String,
       required: true,
-      default: "https://example.com/default-pic.png", // Replace with actual default URL
+    },
+    dob: {
+      type: String,
+      required: true,
+    },
+    educationLevel: {
+      type: String,
+      required: true,
+    },
+    fieldOfStudy: {
+      type: String,
+      required: true,
+    },
+    desiredField: {
+      type: String,
+      required: true,
+    },
+    linkedin: {
+      type: String,
+      required: true,
+    },
+    portfolio: {
+      type: String,
+      required: true,
+    },
+    adminApproved: {
+      type: Boolean,
+      required: false,
     },
   },
   {
@@ -33,14 +56,16 @@ const userwebappSchema = new mongoose.Schema(
   }
 );
 
+// Hash password before saving
 userwebappSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+// Compare hashed password with entered password
 userwebappSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
