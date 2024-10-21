@@ -22,4 +22,6 @@ SkillNaav is a full-stack web application built using the **MERN stack** (MongoD
 - **Authentication**: JWT (JSON Web Token)
 
 ## Project Structure
+**Process to run frontend** : cd frontend => npm i => npm start
+**Process to run backend** :  cd backend => npm i => npm start
 
