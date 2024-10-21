@@ -27,4 +27,4 @@ jobs:
       - name: Deploy to server
         run: |
           # SSH into the server and run the deploy.sh script from the server
-          ssh -o StrictHostKeyChecking=no ubuntu@www.skillnaav.com 'bash /home/ubuntu/skillnaav-fullstack/deploy.sh'
+          ssh -o StrictHostKeyChecking=no ubuntu@www.skillnaav.com 'bash /home/ubuntu/skillnaav-fullstack/deploy.sh || { echo "Deployment failed"; exit 1; }'
