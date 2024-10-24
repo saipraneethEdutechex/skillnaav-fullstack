@@ -1,175 +1,220 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import createAccountImage from "../../../../assets-webapp/login-image.png"; // Update the path as needed
+import googleIcon from "../../../../assets-webapp/Google-icon.png";
+import facebookIcon from "../../../../assets-webapp/Facebook-icon.png";
+import appleIcon from "../../../../assets-webapp/Apple-icon.png";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid"; // Ensure these are the correct imports
+import { Link } from "react-router-dom";
 
-const PartnerManagement = () => {
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedPartner, setSelectedPartner] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+// Validation schema for Formik
+const validationSchema = Yup.object({
+  name: Yup.string().required("Required"),
+  email: Yup.string().email("Invalid email address").required("Required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Required"),
+});
 
-  // Fetch data from the API on component mount
-  useEffect(() => {
-    const fetchPartners = async () => {
-      try {
-        const response = await axios.get("/api/partners/partners");
-        setPartners(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
+const UserCreateAccount = () => {
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Function to handle form submission
+  //he
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.post("/api/users/register", values);
+      navigate("/user-profile-form");
+      localStorage.setItem("userInfo", JSON.stringify(response.data));
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("Error registering user. Please try again.");
       }
-    };
-
-    fetchPartners();
-  }, []);
-
-  const handleApprove = async (partnerId) => {
-//     try {
-//       await axios.patch(`/api/partners/approve/${partnerId}`, { status: "Approved" });
-//       setPartners(partners.map(partner => partner._id === partnerId ? { ...partner, status: "Approved" } : partner));
-//     } catch (err) {
-//       console.error("Error approving partner:", err);
-//     }
-//   };
-
-//   const handleReject = async (partnerId) => {
-//     try {
-//       await axios.patch(`/api/partners/reject/${partnerId}`, { status: "Rejected" });
-//       setPartners(partners.map(partner => partner._id === partnerId ? { ...partner, status: "Rejected" } : partner));
-//     } catch (err) {
-//       console.error("Error rejecting partner:", err);
-//     }
+    }
+    //zdvasdffasdf
+    setSubmitting(false);
   };
-
-  const handlePartnerClick = (partner) => {
-    setSelectedPartner(partner);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedPartner(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-center text-red-500">Error fetching data: {error}</div>;
-  }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Pending Partner Registrations</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-auto divide-y divide-gray-200">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">S No.</th>
-              <th className="px-20 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">University Name</th>
-              <th className="px-20 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Institution ID</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {partners.map((partner, index) => (
-              <tr key={partner._id} className="hover:bg-gray-50 transition duration-200">
-                <td className="px-4 py-4 text-sm text-gray-700" onClick={() => handlePartnerClick(partner)}>
-                  {index + 1}
-                </td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900" onClick={() => handlePartnerClick(partner)}>
-                  {partner.universityName}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700" onClick={() => handlePartnerClick(partner)}>
-                  {partner.institutionId}
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${partner.status === "Approved" ? "bg-green-100 text-green-600"
-                      : partner.status === "Rejected" ? "bg-red-100 text-red-600"
-                        : "bg-yellow-100 text-yellow-600"
-                      }`}
-                  >
-                    {partner.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 flex space-x-4">
-                  <button
-                    className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded hover:bg-green-600"
-                    onClick={() => handleApprove(partner._id)}
-                    disabled={partner.status === "Approved"} // Disable if already approved
-                  >
-                    Approve
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded hover:bg-red-600"
-                    onClick={() => handleReject(partner._id)}
-                    disabled={partner.status === "Rejected"} // Disable if already rejected
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="flex flex-col lg:flex-row min-h-screen font-poppins">
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center">
+        <img
+          src={createAccountImage}
+          alt="Create Account"
+          className="w-full h-full object-cover rounded-lg"
+        />
       </div>
+      <div className="flex flex-col items-center justify-center p-8 w-full lg:w-1/2 bg-white">
+        <div className="w-full max-w-md flex flex-col justify-center min-h-screen lg:min-h-full">
+          <h1 className="text-2xl font-semibold mb-6 text-center">
+            Create an account
+          </h1>
 
-      {/* Modal for Partner Details */}
-      {isModalOpen && selectedPartner && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg max-h-screen overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-blue-500 p-4 rounded-t-lg">
-              <h3 className="text-xl font-bold text-white text-center">Partner Details</h3>
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-red-100 text-red-800 border border-red-400 rounded">
+              {errorMessage}
             </div>
+          )}
 
-            {/* Modal Body */}
-            <div className="bg-white p-6 space-y-4">
-              {/* University Name */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">University Name:</label>
-                <input
-                  type="text"
-                  value={selectedPartner.universityName || 'N/A'}
-                  readOnly
-                  className="border border-gray-300 rounded w-full px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
+          <Formik
+            initialValues={{
+              name: "",
+              email: "",
+              password: "",
+              confirmPassword: "",
+            }}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ isSubmitting }) => (
+              <Form>
+                <div className="mb-4">
+                  <Field
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                  <ErrorMessage
+                    name="name"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
 
-              {/* Institution ID */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">Institution ID:</label>
-                <input
-                  type="text"
-                  value={selectedPartner.institutionId || 'N/A'}
-                  readOnly
-                  className="border border-gray-300 rounded w-full px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-            </div>
+                <div className="mb-4">
+                  <Field
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
 
-            {/* Modal Footer */}
-            <div className="flex justify-end p-4 bg-gray-100 rounded-b-lg space-x-2">
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
-                onClick={closeModal}
-              >
-                Close
-              </button>
-            </div>
+                <div className="mb-4 relative">
+                  <Field
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Password"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3"
+                  >
+                    {showPassword ? (
+                      <EyeIcon className="h-5 w-5 mt-4 text-gray-500" />
+                    ) : (
+                      <EyeSlashIcon className="h-5 w-5 mt-4 text-gray-500" />
+                    )}
+                  </button>
+
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
+                <div className="mb-4 relative">
+                  <Field
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeIcon className="h-5 w-5 mt-4 text-gray-500" />
+                    ) : (
+                      <EyeSlashIcon className="h-5 w-5 mt-4 text-gray-500" />
+                    )}
+                  </button>
+
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 mb-4"
+                >
+                  <a href="/user-profile-form">Register</a>
+                </button>
+              </Form>
+            )}
+          </Formik>
+
+          <div className="flex items-center my-4">
+            <hr className="w-full border-t border-gray-300" />
+            <span className="px-3 text-gray-500">OR</span>
+            <hr className="w-full border-t border-gray-300" />
           </div>
+
+          {/* <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
+            <span className="mr-2">
+              <img src={googleIcon} alt="Google" className="h-5 w-5" />
+            </span>
+            <span className="font-poppins font-semibold text-base leading-6">
+              Sign Up with Google
+            </span>
+          </button>
+          <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
+            <span className="mr-2">
+              <img src={facebookIcon} alt="Facebook" className="h-5 w-5" />
+            </span>
+            <span className="font-poppins font-semibold text-base leading-6">
+              Sign Up with Facebook
+            </span>
+          </button>
+          <button className="w-full bg-white text-gray-800 p-3 rounded-lg border border-gray-300 hover:bg-gray-100 mb-4 flex items-center justify-center">
+            <span className="mr-2">
+              <img src={appleIcon} alt="Apple" className="h-5 w-5" />
+            </span>
+            <span className="font-poppins font-semibold text-base leading-6">
+              Sign Up with Apple
+            </span>
+          </button> */}
+
+          <p className="text-center text-gray-500 font-poppins font-medium text-base leading-6">
+            Already have an account?{" "}
+            <Link to="/user/login" className="text-blue-500 hover:underline">
+              Login
+            </Link>
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default PartnerManagement;
+export default UserCreateAccount;
