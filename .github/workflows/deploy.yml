@@ -16,7 +16,7 @@ jobs:
     - name: Install SSH key
       uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Add this to your GitHub secrets
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Add this to your GitHub secrets
 
     - name: Copy files to EC2 via SCP
       run: |
